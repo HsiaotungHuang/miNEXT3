@@ -1,0 +1,17 @@
+Package: miNEXT3
+Type: Package
+Title: What the Package Does in One 'Title Case' Line
+Version: 1.0
+Date: 2019-12-13
+Author: Your Name
+Maintainer: Your Name <your@email.com>
+Description: One paragraph description of what the package does
+       as one or more full sentences.
+License: GPL (>= 2)
+Imports: 
+    Rcpp,
+    iNEXT,
+    dplyr
+LinkingTo: Rcpp
+Remotes: chaolab2019/chaoUtility
+RoxygenNote: 6.1.1
