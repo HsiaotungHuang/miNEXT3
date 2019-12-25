@@ -478,7 +478,7 @@ double h1_3_1cpp(double pi1, double pi2, double pi3,double m1,double m2,double m
 }
 
 // [[Rcpp::export]]
-double h1_3_2cpp(double pi1, double pi2, double pi3,int m1,int m2,int m3,int n1,int n2,int n3){
+double h1_3_2cpp(double pi1, double pi2, double pi3,double m1,double m2,double m3,double n1,double n2,double n3){
   
   double tmp1 = 0;
   double tmp2 = 0;
@@ -494,7 +494,7 @@ double h1_3_2cpp(double pi1, double pi2, double pi3,int m1,int m2,int m3,int n1,
   tmp1 = -tmp1;
   
   for(int k3=0; k3 <= n3; k3++){
-    for(int k2=0; k2 <= m2; k2++){
+    for(int k2=0; k2 <= n2; k2++){
       for(int k1=0; k1 <= m1; k1++){
         if((k1 == 0) & (k2 == 0)& (k3 == 0)){ tmp2 = 0; }
         else{ tmp2 = tmp2 + (k1+k2+k3)/(m1+n2+n3)*log((k1+k2+k3)/(m1+n2+n3))*Efk_q1_3(pi1,pi2,pi3,m1,n2,n3,k1,k2,k3); }
@@ -586,7 +586,7 @@ double h1_3_1hat_cpp(NumericVector pi1, NumericVector pi2, NumericVector pi3, do
 
 
 // [[Rcpp::export]]
-double h1_3_2hat_cpp(NumericVector pi1, NumericVector pi2, NumericVector pi3, int m1, int m2,int m3, int n1, int n2, int n3){
+double h1_3_2hat_cpp(NumericVector pi1, NumericVector pi2, NumericVector pi3, double m1, double m2,double m3, double n1, double n2, double n3){
   double output_all= 0; 
   //int m3s=m3-n3;
   //  double output_sh = 0;
