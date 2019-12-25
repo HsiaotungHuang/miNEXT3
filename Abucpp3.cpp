@@ -16,13 +16,9 @@ using namespace Rcpp;
 //
 
 // [[Rcpp::export]]
-NumericVector timesTwo(NumericVector x) {
-  return x * 2;
-}
-
-double Hypergeometric(int X, int k, int N,  int n) {
-  return exp(Rf_lchoose(X,k)+Rf_lchoose(X-k,n-k)-Rf_lchoose(N,n));
-  //return Rf_choose(X,k)*Rf_choose(X-k,n-k)/Rf_choose(N,n);
+double Hypergeometric(int K, int k, int N,  int n) {
+  return exp(Rf_lchoose(K,k)+Rf_lchoose(N-K,n-k)-Rf_lchoose(N,n));
+  //return Rf_choose(K,k)*Rf_choose(N-K,n-k)/Rf_choose(N,n);
 }
 
 // [[Rcpp::export]]
@@ -448,26 +444,29 @@ double Efk_q1_3(double pi1, double pi2, double pi3,int m1,int m2,int m3,int k1,i
 }
 
 // [[Rcpp::export]]
-double h1_3_1cpp(double pi1, double pi2, double pi3,int m1,int m2,int m3,int n1,int n2,int n3){
+double h1_3_1cpp(double pi1, double pi2, double pi3,double m1,double m2,double m3,double n1,double n2,double n3){
   
   double tmp1 = 0;
   double tmp2 = 0;
   for(int k3=0; k3 <= m3; k3++){
     for(int k2=0; k2 <= m2; k2++){
       for(int k1=0; k1 <= m1; k1++){
-        if((k1 == 0) & (k2 == 0)& (k3 == 0)){ tmp1 = 0; }
-        else{ tmp1 = tmp1 + (k1+k2+k3)/(m1+m2+m3)*log((k1+k2+k3)/(m1+m2+m3))*Efk_q1_3(pi1,pi2,pi3,m1,m2,m3,k1,k2,k3); }
+        if((k1 == 0) & (k2 == 0)& (k3 == 0)){
+          tmp1 = 0;
+          }else{ 
+          tmp1 = tmp1 + (k1+k2+k3)/(m1+m2+m3)*log((k1+k2+k3)/(m1+m2+m3))*Efk_q1_3(pi1,pi2,pi3,m1,m2,m3,k1,k2,k3); }
       }
     }
   }
   
   tmp1 = -tmp1;
-  
   for(int k3=0; k3 <= n3; k3++){
     for(int k2=0; k2 <= m2; k2++){
       for(int k1=0; k1 <= m1; k1++){
-        if((k1 == 0) & (k2 == 0)& (k3 == 0)){ tmp2 = 0; }
-        else{ tmp2 = tmp2 + (k1+k2+k3)/(m1+m2+m3)*log((k1+k2+k3)/(m1+m2+m3))*Efk_q1_3(pi1,pi2,pi3,m1,m2,n3,k1,k2,k3); }
+        if((k1 == 0) & (k2 == 0)& (k3 == 0)){
+          tmp2 = 0;
+          }else{ 
+          tmp2 = tmp2 + (k1+k2+k3)/(m1+m2+m3)*log((k1+k2+k3)/(m1+m2+m3))*Efk_q1_3(pi1,pi2,pi3,m1,m2,n3,k1,k2,k3); }
       }
     }
   }
@@ -510,11 +509,8 @@ double h1_3_2cpp(double pi1, double pi2, double pi3,int m1,int m2,int m3,int n1,
 }
 
 
-
-
-
 // [[Rcpp::export]]
-double h1_3_1hat_cpp(NumericVector pi1, NumericVector pi2, NumericVector pi3, int m1, int m2,int m3, int n1, int n2, int n3){
+double h1_3_1hat_cpp(NumericVector pi1, NumericVector pi2, NumericVector pi3, double m1, double m2,double m3, double n1, double n2, double n3){
   double output_all= 0; 
   //int m3s=m3-n3;
   //  double output_sh = 0;
@@ -574,7 +570,6 @@ double h1_3_1hat_cpp(NumericVector pi1, NumericVector pi2, NumericVector pi3, in
     for(int i=0; i < pi1_tmp.size(); i++){
       sum100 = sum100 +  h1_3_1cpp(pi1_tmp[i],0,0,m1,m2,m3,n1,n2,n3)/(1-pow(1-pi1_tmp[i], n1));
     }
-    
     output_all =sumsh+sum011+sum010+sum100+sum001+sum010+sum100;
     
     //    output_sh = sumsh;
@@ -664,11 +659,4 @@ double h1_3_2hat_cpp(NumericVector pi1, NumericVector pi2, NumericVector pi3, in
   return output;
 }
 
-// You can include R code blocks in C++ files processed with sourceCpp
-// (useful for testing and development). The R code will be automatically 
-// run after the compilation.
-//
 
-/*** R
-timesTwo(42)
-*/
