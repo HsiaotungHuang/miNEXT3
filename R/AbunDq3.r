@@ -1,3 +1,19 @@
+#' Mixture diversity of 3 communities
+#' \code{miNEXT} computes the mixture diversity of 3 community.
+#' @param data a matrix/data.frame.
+#' @param knots an integer specifying the number of points of m1. Default is 15.
+#' @param m1 a vector specifying the values of m1 where the mixture diversity will be computed.
+#' @param nboot an integer specifying the number of bootstrap times to build confidence interval. 
+#' Use 0 to skip bootstrap.
+#' @return a list of 2 components: \code{$Each} a table of diversity of single community; \code{$Mixture} a 
+#' table of mixture diversity.
+#' @importFrom iNEXT iNEXT
+#' @import dplyr
+#' @examples
+#' data(Abudata)
+#' data1 <- Abudata$data
+#' result <- miNEXT3(data1)
+#' @export
 miNEXT3 <- function(data, knots = 15, m1 = NULL,nboot = 0){
   if(is.null(colnames(data))){colnames(data) <- paste0("site",1:ncol(data))}
   n <- colSums(data)
@@ -36,6 +52,58 @@ miNEXT3 <- function(data, knots = 15, m1 = NULL,nboot = 0){
   return(list(Each = Each, Mixture = Mixture))
 }
 
+#' Plot function for output of miNEXT3.
+#' \code{ggmiNEXT3} plot the output of miNEXT3 based on ggplot.
+#' @param x output of miNEXT3.
+#' @return a ggplot object
+#' @importFrom ggplot2 ggplot
+#' @import dplyr
+#' @examples
+#' data(Abudata)
+#' data1 <- Abudata$data
+#' result <- miNEXT3(data1)
+#' ggmiNEXT3(result)
+#' @export
+ggmiNEXT3 <- function(x){
+  nms <- unique(x$Each$Community)
+  x$Mixture <- x$Mixture %>% mutate(Community = "Mixture") %>% select(m1,q,Diversity,LCL,UCL,method,Community)
+  if(length(unique(x$Mixture$method))==2){
+    border <- x$Mixture %>% filter(method=="rarefaction") %>% filter(m1 == min(m1))
+    border$method <- "extrapolation"
+    x$Mixture <- rbind(x$Mixture,border)
+  }
+  x$Each <- x$Each %>% mutate(LCL=Diversity,UCL=Diversity) %>% select(m1=m,q,Diversity,LCL,UCL,method,Community)
+  x <- do.call(rbind,x)
+  # output <- output %>% mutate(m1new = ifelse(Community == nms[2]|Community == nms[3],sum(data[,1])-m1, m1))
+  x_h <- x %>% filter(method=="observed" & Community==nms[1]) %>% select(q,Diversity) %>% 
+    group_by(q)
+  x_p <- x %>% filter(method=="observed") 
+  x$method[x$method=="observed"] <- "rarefaction" 
+  x$method <- factor(x$method,levels = unique(x$method))
+  pp = ggplot()+facet_grid(q~.,scales = "free_y")+
+    geom_hline(data = x_h, aes(yintercept = Diversity), col = "darkgray", linetype = 3, size = 1.25)+
+    geom_line(data = x, aes(x = m1, y = Diversity, col = Community, size = Community, lty = method))+
+    geom_point(data = x_p, aes(x = m1, y = Diversity, col = Community),size = 3)+
+    geom_ribbon(data = x, aes(x = m1, ymin = LCL, ymax = UCL, fill = Community),alpha = 0.4)+
+    scale_size_manual(breaks=c(nms[1],nms[2],nms[3],"Mixture"), values=c(1, 1, 1, 1.3),
+                      labels = c(nms[1],nms[2],nms[3],"Mixture"))+
+    scale_color_manual(values = c("black", "#00BA38","#619CFF","#F8766D"),
+                       breaks = c(nms[1],nms[2],nms[3],"Mixture"),
+                       labels = c(nms[1],nms[2],nms[3],"Mixture"))+xlab("m1")+
+    scale_fill_manual(values = c("black", "#00BA38","#619CFF","#F8766D"),
+                      breaks = c(nms[1],nms[2],nms[3],"Mixture"))+
+    theme_bw()+
+    theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
+    theme(legend.position="bottom",legend.title=element_blank(),
+          legend.text=element_text(size=10),legend.key.width  = unit(1.5,"cm"))+
+    theme(plot.title = element_text(size=10, face="bold.italic",hjust = 0))+
+    theme(axis.text.x= element_text(size = 10,colour = "black",margin=unit(c(0.2,0.2,0.5,0.5), "cm")),
+          axis.text.y= element_text(size = 10,colour = "black",margin=unit(c(0.2,0.2,0.2,0.2), "cm")),
+          axis.title.x=element_text(size = 10,lineheight = 1.1),axis.title.y=element_text(size = 12),
+          axis.ticks = element_line(size = 1.5,colour = "black"),axis.ticks.length = unit(-0.25,"line"))
+  return(pp)
+}
+
 mix3 <- function(data,ms){
   n <- colSums(data)
   if( sum( apply(ms, 1, function(m) sum(m<=n)) ==3) < nrow(ms)){
@@ -51,9 +119,9 @@ mix3 <- function(data,ms){
 }
 mix3_each <- function(data,m,n,datap=NULL){
   if(sum(m>n)==0){
-    q0 <- D0_rare_yhc(data[,1], data[,2],data[,3], m[1], m[2],m[3])
-    q1 <- D_share_yhc(data[,1], data[,2],data[,3], m[1], m[2],m[3],1)
-    q2 <- D2_yhc(data,m)
+    q0 <- D0_rare(data[,1], data[,2],data[,3], m[1], m[2],m[3])
+    q1 <- D_rare(data[,1], data[,2],data[,3], m[1], m[2],m[3],1)
+    q2 <- D2(data,m)
   }else if(sum(m[-1]>n[-1])==1){
     if(m[2] > n[2]){
       data <- data[,c(1,3,2)]
@@ -61,78 +129,19 @@ mix3_each <- function(data,m,n,datap=NULL){
       n <- n[c(1,3,2)]
       m <- m[c(1,3,2)]
     }
-    q0 <- D_q0_ext1_yhc(data,datap,m,n)
-    q1 <- D_q1_ext1_yhc(data,datap,m,n)
-    q2 <- D2_yhc(data,m)
+    q0 <- D_q0_ext1(data,datap,m,n)
+    q1 <- D_q1_ext1(data,datap,m,n)
+    q2 <- D2(data,m)
   }else{
-    q0 <- D_q0_ext2_yhc(data,datap,m,n)
-    q1 <- D_q1_ext2_yhc(data,datap,m,n)
-    q2 <- D2_yhc(data,m)
+    q0 <- D_q0_ext2(data,datap,m,n)
+    q1 <- D_q1_ext2(data,datap,m,n)
+    q2 <- D2(data,m)
   }
   return(c(q0,q1,q2))
 }
 
-
-#######################################################################################################################
-#' R code for q=0,1, 3-habitat mixture of rarefactioncurves
-#' @param x1 a vector/matrix/list of species abundance frequency
-#' @param mm an int matrix for number of individuals for x1,x2,x3 
-#' @param q  a numerical value for Dq
-#' @return  a vector/matrix/list with species relative abundance or detection probability distribution
-#' @examples
-#' data(Abudata)
-#' data1<-Abudata$data
-#' mm1<-Abudata$mm
-#' Dq_in(data1[,1],data1[,2],data1[,3],mm1,0)
-#' @export
-Dq_in<-function(x1,x2,x3,mm,q){
-  out = apply(mm,1,function(mm) {
-    mm1 = mm[1]
-    mm2 = mm[2]
-    mm3 = mm[3]
-    
-    print(paste("mm1=",mm1,"mm2=",mm2,"mm3=",mm3,"q=",q))
-    D_share(x1, x2,x3, mm1, mm2,mm3, q)
-  })
-  out
-}
-
-
-#######################################################################################################################
-#' R code for q=0,1  3-habitat mixture of rarefaction curves
-#' @param x1 a vector/matrix/list of species abundance frequency
-#' @param m a vector of length 3 specifying number of individuals for each column of data 
-#' @param q  a vector of diversity order, usually c(0,1,2)
-#' @return a vector of mixture diversity of q = 0,1,2
-#' @examples
-#' data(Abudata)
-#' data1<-Abudata$data
-#' mm1<-Abudata$mm
-#' Dq_in_yhc(data1[,1],data1[,2],data1[,3],mm1,0)
-#' @export
-Dq_in_yhc<-function(data,m,q){
-  q1pls <- q[!c(q==0|q==2)]
-  out1pls <- D_share_yhc(data[,1], data[,2],data[,3], m[1], m[2],m[3],q1pls)
-  if(length(q1pls)>=2) out1pls <- t(out1pls)
-  out0 <- D0_rare_yhc(data[,1], data[,2],data[,3], m[1], m[2],m[3])
-  out2 <- D2_yhc(data = data,m)
-  c(out0,out1pls,out2)
-}
-
-#######################################################################################################################
-#' R code for q=2, 3-habitat mixture of rarefaction/extrapolation curves
-#' @import dplyr
-#' @param x1 a vector/matrix/list of species abundance frequency
-#' @param mm an int matrix for number of individuals for x1,x2,x3 
-#' @param q  a numerical value for Dq
-#' @return  a vector/matrix/list with species relative abundance or detection probability distribution
-#' @examples
-#' data(Abudata)
-#' data1<-Abudata$data
-#' mm1<-Abudata$mm
-#' Dq_in_yhc(data1[,1],data1[,2],data1[,3],mm1,0)
-#' @export
-D2_yhc <- function(data,mm){
+# q = 2, work for both interpolation and extrapolation
+D2 <- function(data,mm){
   N <- ncol(data)
   n <- colSums(data)
   ch2 <- combn(x = 1:N,m = 2,simplify = T) %>% t()
@@ -151,71 +160,9 @@ D2_yhc <- function(data,mm){
 
   # apply(mm, 1, subfun)
 }
-
-D_q0_ext1<-function(x1,x2,x3,p1,p2,p3,mm,n,q){
-  D_q0_ext1_value<-0
-  n1<-n[1]
-  n2<-n[2]
-  n3<-n[3]
-  mm3<-mm[,3]
-  mm3<-mm3[mm3>n3]
-  if (length(mm3)==0 | length(mm)<length(mm3)) {stop("function D0_ext1 :all m3 should be larger than n3")}
-  else{
-    mm.1<-cbind(mm[,1],mm[,2],n3)
-    q0_tmp1<-apply(mm.1,1,function(mm) {
-      mm1 = mm[1]
-      mm2 = mm[2]
-      mm3 =mm[3]
-      out<-D_q01_in_3(p1,p2,p3, mm1, mm2, mm3,0)
-    })
-    mmext<-cbind(mm[,1],mm[,2],mm[,3]-n3)
-    h0_3_1hat = apply(mmext,1,function(mm) {
-      mm1 = mm[1]
-      mm2 = mm[2]
-      mm3s =mm[3]
-      out<-h0_3_1hat_cpp(p1,p2,p3, mm1, mm2, mm3s,n1,n2,n3)
-    })
-    
-    D_q0_ext1_value<-q0_tmp1+h0_3_1hat
-  }
-    return(D_q0_ext1_value)
-}
-D_q0_ext2<-function(x1,x2,x3,p1,p2,p3,mm,n,q){
-  D_q0_ext2_value<-0
-  n1<-n[1]
-  n2<-n[2]
-  n3<-n[3]
-  mm3<-mm[,3]
-  mm3<-mm3[mm3>n3]
-  mm2<-mm[,2]
-  mm2<-mm2[mm2>n3]
-  if (length(mm3)==0 | length(mm)<length(mm3)) stop("function D0_ext2 :all m3 should be larger than n3")
-  else if (length(mm2)==0 | length(mm)<length(mm2)) stop("function D0_ext2 :all m2 should be larger than n2")
-  else{
-    mm.1<-cbind(mm[,1],n2,n3)
-    
-    q0_tmp1<-apply(mm.1,1,function(mm) {
-      mm1 = mm[1]
-      mm2 = mm[2]
-      mm3 =mm[3]
-      out<-D_q01_in_3(p1,p2,p3, mm1, mm2, mm3,0)
-    })
-    
-    mmext<-cbind(mm[,1],mm[,2]-n2,mm[,3]-n3)
-    h0_3_2hat = apply(mmext,1,function(mm) {
-      mm1 = mm[1]
-      mm2s = mm[2]
-      mm3s =mm[3]
-      out<-h0_3_2hat_cpp(p1,p2,p3, mm1, mm2s, mm3s,n1,n2,n3)
-    })
-    
-    D_q0_ext2_value<-q0_tmp1+h0_3_2hat
-  }
-  return(D_q0_ext2_value)
-}
 # q = 0, for two rarefaction and one extrapolation
-D_q0_ext1_yhc<-function(data,datap,m,n){
-  q0_tmp1 <- D0_rare_yhc(data[,1],data[,2],data[,3], m[1], m[2], n[3])
+D_q0_ext1<-function(data,datap,m,n){
+  q0_tmp1 <- D0_rare(data[,1],data[,2],data[,3], m[1], m[2], n[3])
   h0_3_1hat <- h0_3_1hat_cpp(datap[,1],datap[,2],datap[,3], m[1], m[2], m[3]-n[3],n[1],n[2],n[3])
   
   D_q0_ext1_value<-q0_tmp1+h0_3_1hat
@@ -223,89 +170,29 @@ D_q0_ext1_yhc<-function(data,datap,m,n){
   return(D_q0_ext1_value) 
 }
 # q = 0, for one rarefaction and two extrapolation
-D_q0_ext2_yhc<-function(data,datap,m,n){
-  q0_tmp1<-D0_rare_yhc(data[,1],data[,2],data[,3], m[1], n[2], n[3])
+D_q0_ext2<-function(data,datap,m,n){
+  q0_tmp1<-D0_rare(data[,1],data[,2],data[,3], m[1], n[2], n[3])
   h0_3_2hat <- h0_3_2hat_cpp(datap[,1],datap[,2],datap[,3], m[1], m[2]-n[2], m[3]-n[3],n[1],n[2],n[3])
   D_q0_ext2_value<-q0_tmp1+h0_3_2hat
   return(D_q0_ext2_value)
 }
-
-
-D_q1_ext1<-function(x1,x2,x3,p1,p2,p3,mm,n,q){
-  D_q1_ext1_value<-0
-  n1<-n[1]
-  n2<-n[2]
-  n3<-n[3]
-  mm3<-mm[,3]
-  mm3<-mm3[mm3>n3]
-  if (length(mm3)==0 | length(mm)<length(mm3)) stop("function D0_ext1 :all m3 should be larger than n3")
-  else{
-    mm.1<-cbind(mm[,1],mm[,2],n3)
-    q1_tmp1<-apply(mm.1,1,function(mm) {
-      mm1 = mm[1]
-      mm2 = mm[2]
-      mm3 =mm[3]
-      out<-D_q01_in_3(p1,p2,p3, mm1, mm2, mm3,1)
-    })
-    
-    
-    h1_3_1hat = apply(mmext,1,function(mm) {
-      mm1 = mm[1]
-      mm2 = mm[2]
-      mm3 =mm[3]
-      out<-h1_3_1hat_cpp(p1,p2,p3, mm1, mm2, mm3,n1,n2,n3)
-    })
-    
-    D_q1_ext1_value<-q1_tmp1+exp(h1_3_1hat)
-  }
-  return(D_q1_ext1_value)
-}
-D_q1_ext2<-function(x1,x2,x3,p1,p2,p3,mm,n,q){
-  D_q1_ext2_value<-0
-  n1<-n[1]
-  n2<-n[2]
-  n3<-n[3]
-  mm3<-mm[,3]
-  mm3<-mm3[mm3>n3]
-  if (length(mm3)==0 | length(mm)<length(mm3)) stop("function D0_ext1 :all m3 should be larger than n3")
-  else{
-    mm.1<-cbind(mm[,1],mm[,2],n3)
-    
-    q1_tmp1<-apply(mm.1,1,function(mm) {
-      mm1 = mm[1]
-      mm2 = mm[2]
-      mm3 =mm[3]
-      out<-D_q01_in_3(p1,p2,p3, mm1, mm2, mm3,1)
-    })
-    
-    h1_3_2hat = apply(mmext,1,function(mm) {
-      mm1 = mm[1]
-      mm2 = mm[2]
-      mm3 =mm[3]
-      out<-h1_3_2hat_cpp(p1,p2,p3, mm1, mm2, mm3,n1,n2,n3)
-    })
-    
-    D_q1_ext2_value<-q1_tmp1+exp(h1_3_2hat)
-  }
-  return(D_q1_ext2_value)
-}
 # q = 1, for two rarefaction and one extrapolation
-D_q1_ext1_yhc<-function(data,datap,m,n){
-  q1_tmp1 <- D_share_yhc(data[,1],data[,2],data[,3], m[1], m[2], n[3],1)
+D_q1_ext1<-function(data,datap,m,n){
+  q1_tmp1 <- D_rare(data[,1],data[,2],data[,3], m[1], m[2], n[3],1)
   h1_3_1hat <- h1_3_1hat_cpp(datap[,1],datap[,2],datap[,3], m[1], m[2], m[3],n[1],n[2],n[3])
   
   D_q1_ext1_value<-q1_tmp1*exp(h1_3_1hat)
   return(D_q1_ext1_value)
 }
 # q = 1, for one rarefaction and two extrapolation
-D_q1_ext2_yhc<-function(data,datap,m,n){
-  q1_tmp1 <- D_share_yhc(data[,1],data[,2],data[,3], m[1], n[2], n[3],1)
+D_q1_ext2<-function(data,datap,m,n){
+  q1_tmp1 <- D_rare(data[,1],data[,2],data[,3], m[1], n[2], n[3],1)
   h1_3_2hat <- h1_3_2hat_cpp(datap[,1],datap[,2],datap[,3], m[1], m[2], m[3],n[1],n[2],n[3])
   D_q1_ext2_value<-q1_tmp1*exp(h1_3_2hat)
   return(D_q1_ext2_value)
 }
 
-
+# Functions for bootstrap
 Abun_CreatBootstrapSample <- function(data, nboots = 0){
   data <- data[rowSums(data)>0,]
   if(nboots>1){
@@ -373,44 +260,5 @@ Chat1_f0Fun <-function(f1, f2, n) {
   return(c(C, f0))
 }
 
-ggmiNEXT3 <- function(x){
-  nms <- unique(x$Each$Community)
-  x$Mixture <- x$Mixture %>% mutate(Community = "Mixture") %>% select(m1,q,Diversity,LCL,UCL,method,Community)
-  if(length(unique(x$Mixture$method))==2){
-    border <- x$Mixture %>% filter(method=="rarefaction") %>% filter(m1 == min(m1))
-    border$method <- "extrapolation"
-    x$Mixture <- rbind(x$Mixture,border)
-  }
-  x$Each <- x$Each %>% mutate(LCL=Diversity,UCL=Diversity) %>% select(m1=m,q,Diversity,LCL,UCL,method,Community)
-  x <- do.call(rbind,x)
-  # output <- output %>% mutate(m1new = ifelse(Community == nms[2]|Community == nms[3],sum(data[,1])-m1, m1))
-  x_h <- x %>% filter(method=="observed" & Community==nms[1]) %>% select(q,Diversity) %>% 
-    group_by(q)
-  x_p <- x %>% filter(method=="observed") 
-  x$method[x$method=="observed"] <- "rarefaction" 
-  x$method <- factor(x$method,levels = unique(x$method))
-  pp = ggplot()+facet_grid(q~.,scales = "free_y")+
-    geom_hline(data = x_h, aes(yintercept = Diversity), col = "darkgray", linetype = 3, size = 1.25)+
-    geom_line(data = x, aes(x = m1, y = Diversity, col = Community, size = Community, lty = method))+
-    geom_point(data = x_p, aes(x = m1, y = Diversity, col = Community),size = 3)+
-    geom_ribbon(data = x, aes(x = m1, ymin = LCL, ymax = UCL, fill = Community),alpha = 0.4)+
-    scale_size_manual(breaks=c(nms[1],nms[2],nms[3],"Mixture"), values=c(1, 1, 1, 1.3),
-                      labels = c(nms[1],nms[2],nms[3],"Mixture"))+
-    scale_color_manual(values = c("black", "#00BA38","#619CFF","#F8766D"),
-                       breaks = c(nms[1],nms[2],nms[3],"Mixture"),
-                       labels = c(nms[1],nms[2],nms[3],"Mixture"))+xlab("m1")+
-    scale_fill_manual(values = c("black", "#00BA38","#619CFF","#F8766D"),
-                      breaks = c(nms[1],nms[2],nms[3],"Mixture"))+
-    theme_bw()+
-    theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
-    theme(legend.position="bottom",legend.title=element_blank(),
-          legend.text=element_text(size=10),legend.key.width  = unit(1.5,"cm"))+
-    theme(plot.title = element_text(size=10, face="bold.italic",hjust = 0))+
-    theme(axis.text.x= element_text(size = 10,colour = "black",margin=unit(c(0.2,0.2,0.5,0.5), "cm")),
-          axis.text.y= element_text(size = 10,colour = "black",margin=unit(c(0.2,0.2,0.2,0.2), "cm")),
-          axis.title.x=element_text(size = 10,lineheight = 1.1),axis.title.y=element_text(size = 12),
-          axis.ticks = element_line(size = 1.5,colour = "black"),axis.ticks.length = unit(-0.25,"line"))
-  return(pp)
-}
 
 
