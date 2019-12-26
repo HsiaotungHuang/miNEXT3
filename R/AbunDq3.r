@@ -1,4 +1,5 @@
 miNEXT3 <- function(data, knots = 15, m1 = NULL,nboot = 0){
+  if(is.null(colnames(data))){colnames(data) <- paste0("site",1:ncol(data))}
   n <- colSums(data)
   D <- apply(data,2, function(x) sum(x>0))
   
@@ -14,8 +15,8 @@ miNEXT3 <- function(data, knots = 15, m1 = NULL,nboot = 0){
     output$qD[is.na(output$qD)] <- 0
     output %>% as_tibble() %>% select(m, q = order, Diversity=qD,method) %>% mutate(Community = names(n)[i])
   }) %>% do.call(rbind,.)
-  Each$method[each$method=="interpolated"] <- "rarefaction"
-  Each$method[each$method=="extrapolated"] <- "extrapolation"
+  Each$method[Each$method=="interpolated"] <- "rarefaction"
+  Each$method[Each$method=="extrapolated"] <- "extrapolation"
   
   #compute the mixture diversity
   mix <- mix3(data,ms = cbind(m1,m2,m3)) %>% as.numeric()
