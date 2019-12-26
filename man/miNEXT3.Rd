@@ -3,7 +3,7 @@
 \name{miNEXT3}
 \alias{miNEXT3}
 \title{Mixture diversity of 3 communities
-\code{miNEXT} computes the mixture diversity of 3 community.}
+\code{miNEXT} computes the mixture diversity of 3 communities.}
 \usage{
 miNEXT3(data, knots = 15, m1 = NULL, nboot = 0)
 }
@@ -23,7 +23,7 @@ table of mixture diversity.
 }
 \description{
 Mixture diversity of 3 communities
-\code{miNEXT} computes the mixture diversity of 3 community.
+\code{miNEXT} computes the mixture diversity of 3 communities.
 }
 \examples{
 data(Abudata)
