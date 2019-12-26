@@ -16,13 +16,9 @@ using namespace Rcpp;
 //
 
 // [[Rcpp::export]]
-NumericVector timesTwo(NumericVector x) {
-  return x * 2;
-}
-
-double Hypergeometric(int X, int k, int N,  int n) {
-  return exp(Rf_lchoose(X,k)+Rf_lchoose(X-k,n-k)-Rf_lchoose(N,n));
-  //return Rf_choose(X,k)*Rf_choose(X-k,n-k)/Rf_choose(N,n);
+double Hypergeometric(int K, int k, int N,  int n) {
+  return exp(Rf_lchoose(K,k)+Rf_lchoose(N-K,n-k)-Rf_lchoose(N,n));
+  //return Rf_choose(K,k)*Rf_choose(N-K,n-k)/Rf_choose(N,n);
 }
 
 // [[Rcpp::export]]
@@ -46,72 +42,6 @@ double fk_3(int k1, int k2,int k3, int m1, int m2,int m3, NumericVector x1, Nume
 }
 
 // [[Rcpp::export]]
-double fk(int k1, int k2, int k3, int m1, int m2, int m3, NumericVector x1, NumericVector y1, NumericVector z1){
-  int n1 = sum(x1);
-  int n2 = sum(y1);
-  int n3 = sum(z1);
-  NumericVector x = x1[(x1>=k1) & ((y1>=k2) & (z1>=k3))];
-  NumericVector y = y1[(x1>=k1) & ((y1>=k2) & (z1>=k3))];
-  NumericVector z = z1[(x1>=k1) & ((y1>=k2) & (z1>=k3))];
-  
-  double output = 0;
-  if(sum((x1>=k1) & ((y1>=k2) & (z1>=k3) ))==0){
-    output = output;
-  }else{
-    for(int i = 0; i<x.size(); i++){
-      output = output + Hypergeometric(x[i], k1, n1, m1)*Hypergeometric(y[i], k2, n2, m2)*Hypergeometric(z[i], k3, n3, m3);
-    }
-  }
-  return output;
-}
-
-// [[Rcpp::export]]
-double D_share(NumericVector xi,NumericVector yi,NumericVector zi,double m1, double m2, double m3,double q){
-  //NumericVector xi = X(_,0);
-  //NumericVector yi = X(_,1);
-  double fk123 = 0;
-  double output = 0;
-  
-  double max1 = max(xi);
-  double max2 = max(yi);
-  double max3 = max(zi);
-  double m1loop = std::min(m1,max1);
-  double m2loop = std::min(m2,max2);
-  double m3loop = std::min(m3,max3);
-  
-  if(q==1){
-    for(int k1 = 0; k1<(m1loop+1) ; k1++){
-      for(int k2 = 0; k2<(m2loop+1) ; k2++){
-        for(int k3 = 0; k3<(m3loop+1) ; k3++){
-          if((k1 == 0) & ((k2 == 0) & (k3 == 0))){
-            fk123 = fk123; 
-          }else{
-            fk123 = fk123 -((k1+k2+k3)/(m1+m2+m3))*log((k1+k2+k3)/(m1+m2+m3))*fk(k1, k2, k3, m1, m2, m3, xi, yi, zi);
-          }
-        }
-      }
-    }
-    output = exp(fk123);
-    if ((m1loop==0) & ((m2loop==0) & (m3loop==0))) output=1;
-  }else{
-    for(int k1 = 0; k1<(m1loop+1) ; k1++){
-      for(int k2 = 0; k2<(m2loop+1) ; k2++){
-        for(int k3 = 0; k3<(m3loop+1); k3++){
-          if((k1 == 0) & ((k2 == 0) & (k3 == 0))){
-            fk123 = fk123; 
-          }else{
-            fk123 = fk123 + pow(((k1+k2+k3)/(m1+m2+m3)), q)*fk(k1, k2, k3, m1, m2, m3, xi, yi, zi);
-          }
-        }
-      }
-    }
-    output = pow(fk123, 1/(1-q));
-    if ((m1loop==0) & ((m2loop==0) & (m3loop==0))) output=0;
-  }
-  return output;
-}
-
-// [[Rcpp::export]]
 NumericVector D_share_yhc(NumericVector xi,NumericVector yi,NumericVector zi,double m1, double m2, double m3,NumericVector q){
   NumericVector fk123(q.size());
   double max1 = max(xi);
@@ -129,7 +59,7 @@ NumericVector D_share_yhc(NumericVector xi,NumericVector yi,NumericVector zi,dou
         if((k1==0) & ((k2 == 0) & (k3 == 0))){
           fk123 = fk123;
         }else{
-          tmp = fk(k1, k2, k3, m1, m2, m3, xi, yi, zi);
+          tmp = fk_3(k1, k2, k3, m1, m2, m3, xi, yi, zi);
           for(int qi = 0; qi< q.size(); qi++){
             if(q[qi]==1){ 
               fk123[qi] = fk123[qi] - ((k1+k2+k3)/(m1+m2+m3))*log((k1+k2+k3)/(m1+m2+m3))*tmp;
@@ -277,7 +207,7 @@ double h0_3_2cpp(double pi1, double pi2, double pi3,int m1,int m2s,int n2 ,int m
 double h0_3_1hat_cpp(NumericVector pi1, NumericVector pi2, NumericVector pi3, int m1, int m2,int m3s, int n1, int n2, int n3){
   double output_all= 0; 
   //  double output_sh = 0;
-  if(m1>0){
+  if(m1>=0){
     NumericVector pi1_tmp = pi1[(pi1>0) & (pi2>0)& (pi3>0)];
     NumericVector pi2_tmp = pi2[(pi1>0) & (pi2>0)& (pi3>0)];
     NumericVector pi3_tmp = pi3[(pi1>0) & (pi2>0)& (pi3>0)];
@@ -351,7 +281,7 @@ double h0_3_1hat_cpp(NumericVector pi1, NumericVector pi2, NumericVector pi3, in
 double h0_3_2hat_cpp(NumericVector pi1, NumericVector pi2, NumericVector pi3, int m1, int m2s,int m3s, int n1, int n2, int n3){
   double output_all= 0; 
   //  double output_sh = 0;
-  if(m1>0){
+  if(m1>=0){
     NumericVector pi1_tmp = pi1[(pi1>0) & (pi2>0)& (pi3>0)];
     NumericVector pi2_tmp = pi2[(pi1>0) & (pi2>0)& (pi3>0)];
     NumericVector pi3_tmp = pi3[(pi1>0) & (pi2>0)& (pi3>0)];
@@ -448,26 +378,29 @@ double Efk_q1_3(double pi1, double pi2, double pi3,int m1,int m2,int m3,int k1,i
 }
 
 // [[Rcpp::export]]
-double h1_3_1cpp(double pi1, double pi2, double pi3,int m1,int m2,int m3,int n1,int n2,int n3){
+double h1_3_1cpp(double pi1, double pi2, double pi3,double m1,double m2,double m3,double n1,double n2,double n3){
   
   double tmp1 = 0;
   double tmp2 = 0;
   for(int k3=0; k3 <= m3; k3++){
     for(int k2=0; k2 <= m2; k2++){
       for(int k1=0; k1 <= m1; k1++){
-        if((k1 == 0) & (k2 == 0)& (k3 == 0)){ tmp1 = 0; }
-        else{ tmp1 = tmp1 + (k1+k2+k3)/(m1+m2+m3)*log((k1+k2+k3)/(m1+m2+m3))*Efk_q1_3(pi1,pi2,pi3,m1,m2,m3,k1,k2,k3); }
+        if((k1 == 0) & (k2 == 0)& (k3 == 0)){
+          tmp1 = 0;
+          }else{ 
+          tmp1 = tmp1 + (k1+k2+k3)/(m1+m2+m3)*log((k1+k2+k3)/(m1+m2+m3))*Efk_q1_3(pi1,pi2,pi3,m1,m2,m3,k1,k2,k3); }
       }
     }
   }
   
   tmp1 = -tmp1;
-  
   for(int k3=0; k3 <= n3; k3++){
     for(int k2=0; k2 <= m2; k2++){
       for(int k1=0; k1 <= m1; k1++){
-        if((k1 == 0) & (k2 == 0)& (k3 == 0)){ tmp2 = 0; }
-        else{ tmp2 = tmp2 + (k1+k2+k3)/(m1+m2+m3)*log((k1+k2+k3)/(m1+m2+m3))*Efk_q1_3(pi1,pi2,pi3,m1,m2,n3,k1,k2,k3); }
+        if((k1 == 0) & (k2 == 0)& (k3 == 0)){
+          tmp2 = 0;
+          }else{ 
+          tmp2 = tmp2 + (k1+k2+k3)/(m1+m2+m3)*log((k1+k2+k3)/(m1+m2+m3))*Efk_q1_3(pi1,pi2,pi3,m1,m2,n3,k1,k2,k3); }
       }
     }
   }
@@ -479,7 +412,7 @@ double h1_3_1cpp(double pi1, double pi2, double pi3,int m1,int m2,int m3,int n1,
 }
 
 // [[Rcpp::export]]
-double h1_3_2cpp(double pi1, double pi2, double pi3,int m1,int m2,int m3,int n1,int n2,int n3){
+double h1_3_2cpp(double pi1, double pi2, double pi3,double m1,double m2,double m3,double n1,double n2,double n3){
   
   double tmp1 = 0;
   double tmp2 = 0;
@@ -495,7 +428,7 @@ double h1_3_2cpp(double pi1, double pi2, double pi3,int m1,int m2,int m3,int n1,
   tmp1 = -tmp1;
   
   for(int k3=0; k3 <= n3; k3++){
-    for(int k2=0; k2 <= m2; k2++){
+    for(int k2=0; k2 <= n2; k2++){
       for(int k1=0; k1 <= m1; k1++){
         if((k1 == 0) & (k2 == 0)& (k3 == 0)){ tmp2 = 0; }
         else{ tmp2 = tmp2 + (k1+k2+k3)/(m1+n2+n3)*log((k1+k2+k3)/(m1+n2+n3))*Efk_q1_3(pi1,pi2,pi3,m1,n2,n3,k1,k2,k3); }
@@ -510,15 +443,12 @@ double h1_3_2cpp(double pi1, double pi2, double pi3,int m1,int m2,int m3,int n1,
 }
 
 
-
-
-
 // [[Rcpp::export]]
-double h1_3_1hat_cpp(NumericVector pi1, NumericVector pi2, NumericVector pi3, int m1, int m2,int m3, int n1, int n2, int n3){
+double h1_3_1hat_cpp(NumericVector pi1, NumericVector pi2, NumericVector pi3, double m1, double m2,double m3, double n1, double n2, double n3){
   double output_all= 0; 
   //int m3s=m3-n3;
   //  double output_sh = 0;
-  if(m1>0){
+  if(m1>=0){
     NumericVector pi1_tmp = pi1[(pi1>0) & (pi2>0)& (pi3>0)];
     NumericVector pi2_tmp = pi2[(pi1>0) & (pi2>0)& (pi3>0)];
     NumericVector pi3_tmp = pi3[(pi1>0) & (pi2>0)& (pi3>0)];
@@ -574,7 +504,6 @@ double h1_3_1hat_cpp(NumericVector pi1, NumericVector pi2, NumericVector pi3, in
     for(int i=0; i < pi1_tmp.size(); i++){
       sum100 = sum100 +  h1_3_1cpp(pi1_tmp[i],0,0,m1,m2,m3,n1,n2,n3)/(1-pow(1-pi1_tmp[i], n1));
     }
-    
     output_all =sumsh+sum011+sum010+sum100+sum001+sum010+sum100;
     
     //    output_sh = sumsh;
@@ -591,11 +520,11 @@ double h1_3_1hat_cpp(NumericVector pi1, NumericVector pi2, NumericVector pi3, in
 
 
 // [[Rcpp::export]]
-double h1_3_2hat_cpp(NumericVector pi1, NumericVector pi2, NumericVector pi3, int m1, int m2,int m3, int n1, int n2, int n3){
+double h1_3_2hat_cpp(NumericVector pi1, NumericVector pi2, NumericVector pi3, double m1, double m2,double m3, double n1, double n2, double n3){
   double output_all= 0; 
   //int m3s=m3-n3;
   //  double output_sh = 0;
-  if(m1>0){
+  if(m1>=0){
     NumericVector pi1_tmp = pi1[(pi1>0) & (pi2>0)& (pi3>0)];
     NumericVector pi2_tmp = pi2[(pi1>0) & (pi2>0)& (pi3>0)];
     NumericVector pi3_tmp = pi3[(pi1>0) & (pi2>0)& (pi3>0)];
@@ -664,11 +593,4 @@ double h1_3_2hat_cpp(NumericVector pi1, NumericVector pi2, NumericVector pi3, in
   return output;
 }
 
-// You can include R code blocks in C++ files processed with sourceCpp
-// (useful for testing and development). The R code will be automatically 
-// run after the compilation.
-//
 
-/*** R
-timesTwo(42)
-*/
