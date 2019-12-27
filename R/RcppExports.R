@@ -2,62 +2,62 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 Hypergeometric <- function(K, k, N, n) {
-    .Call('_miNEXT3_Hypergeometric', PACKAGE = 'miNEXT3', K, k, N, n)
+    .Call(`_miNEXT3_Hypergeometric`, K, k, N, n)
 }
 
 fk_3 <- function(k1, k2, k3, m1, m2, m3, x1, y1, z1) {
-    .Call('_miNEXT3_fk_3', PACKAGE = 'miNEXT3', k1, k2, k3, m1, m2, m3, x1, y1, z1)
+    .Call(`_miNEXT3_fk_3`, k1, k2, k3, m1, m2, m3, x1, y1, z1)
 }
 
 D_rare <- function(xi, yi, zi, m1, m2, m3, q) {
-    .Call('_miNEXT3_D_rare', PACKAGE = 'miNEXT3', xi, yi, zi, m1, m2, m3, q)
+    .Call(`_miNEXT3_D_rare`, xi, yi, zi, m1, m2, m3, q)
 }
 
 D0_rare <- function(xi, yi, zi, m1, m2, m3) {
-    .Call('_miNEXT3_D0_rare', PACKAGE = 'miNEXT3', xi, yi, zi, m1, m2, m3)
+    .Call(`_miNEXT3_D0_rare`, xi, yi, zi, m1, m2, m3)
 }
 
 D_q0_in_3 <- function(xi, yi, zi, m1, m2, m3) {
-    .Call('_miNEXT3_D_q0_in_3', PACKAGE = 'miNEXT3', xi, yi, zi, m1, m2, m3)
+    .Call(`_miNEXT3_D_q0_in_3`, xi, yi, zi, m1, m2, m3)
 }
 
 q2_p_cpp <- function(x1, y1, z1, m1, m2, m3, n1, n2, n3) {
-    .Call('_miNEXT3_q2_p_cpp', PACKAGE = 'miNEXT3', x1, y1, z1, m1, m2, m3, n1, n2, n3)
+    .Call(`_miNEXT3_q2_p_cpp`, x1, y1, z1, m1, m2, m3, n1, n2, n3)
 }
 
 h0_3_1cpp <- function(pi1, pi2, pi3, m1, m2, m3s, n3) {
-    .Call('_miNEXT3_h0_3_1cpp', PACKAGE = 'miNEXT3', pi1, pi2, pi3, m1, m2, m3s, n3)
+    .Call(`_miNEXT3_h0_3_1cpp`, pi1, pi2, pi3, m1, m2, m3s, n3)
 }
 
 h0_3_2cpp <- function(pi1, pi2, pi3, m1, m2s, n2, m3s, n3) {
-    .Call('_miNEXT3_h0_3_2cpp', PACKAGE = 'miNEXT3', pi1, pi2, pi3, m1, m2s, n2, m3s, n3)
+    .Call(`_miNEXT3_h0_3_2cpp`, pi1, pi2, pi3, m1, m2s, n2, m3s, n3)
 }
 
 h0_3_1hat_cpp <- function(pi1, pi2, pi3, m1, m2, m3s, n1, n2, n3) {
-    .Call('_miNEXT3_h0_3_1hat_cpp', PACKAGE = 'miNEXT3', pi1, pi2, pi3, m1, m2, m3s, n1, n2, n3)
+    .Call(`_miNEXT3_h0_3_1hat_cpp`, pi1, pi2, pi3, m1, m2, m3s, n1, n2, n3)
 }
 
 h0_3_2hat_cpp <- function(pi1, pi2, pi3, m1, m2s, m3s, n1, n2, n3) {
-    .Call('_miNEXT3_h0_3_2hat_cpp', PACKAGE = 'miNEXT3', pi1, pi2, pi3, m1, m2s, m3s, n1, n2, n3)
+    .Call(`_miNEXT3_h0_3_2hat_cpp`, pi1, pi2, pi3, m1, m2s, m3s, n1, n2, n3)
 }
 
 Efk_q1_3 <- function(pi1, pi2, pi3, m1, m2, m3, k1, k2, k3) {
-    .Call('_miNEXT3_Efk_q1_3', PACKAGE = 'miNEXT3', pi1, pi2, pi3, m1, m2, m3, k1, k2, k3)
+    .Call(`_miNEXT3_Efk_q1_3`, pi1, pi2, pi3, m1, m2, m3, k1, k2, k3)
 }
 
 h1_3_1cpp <- function(pi1, pi2, pi3, m1, m2, m3, n1, n2, n3) {
-    .Call('_miNEXT3_h1_3_1cpp', PACKAGE = 'miNEXT3', pi1, pi2, pi3, m1, m2, m3, n1, n2, n3)
+    .Call(`_miNEXT3_h1_3_1cpp`, pi1, pi2, pi3, m1, m2, m3, n1, n2, n3)
 }
 
 h1_3_2cpp <- function(pi1, pi2, pi3, m1, m2, m3, n1, n2, n3) {
-    .Call('_miNEXT3_h1_3_2cpp', PACKAGE = 'miNEXT3', pi1, pi2, pi3, m1, m2, m3, n1, n2, n3)
+    .Call(`_miNEXT3_h1_3_2cpp`, pi1, pi2, pi3, m1, m2, m3, n1, n2, n3)
 }
 
 h1_3_1hat_cpp <- function(pi1, pi2, pi3, m1, m2, m3, n1, n2, n3) {
-    .Call('_miNEXT3_h1_3_1hat_cpp', PACKAGE = 'miNEXT3', pi1, pi2, pi3, m1, m2, m3, n1, n2, n3)
+    .Call(`_miNEXT3_h1_3_1hat_cpp`, pi1, pi2, pi3, m1, m2, m3, n1, n2, n3)
 }
 
 h1_3_2hat_cpp <- function(pi1, pi2, pi3, m1, m2, m3, n1, n2, n3) {
-    .Call('_miNEXT3_h1_3_2hat_cpp', PACKAGE = 'miNEXT3', pi1, pi2, pi3, m1, m2, m3, n1, n2, n3)
+    .Call(`_miNEXT3_h1_3_2hat_cpp`, pi1, pi2, pi3, m1, m2, m3, n1, n2, n3)
 }
 
