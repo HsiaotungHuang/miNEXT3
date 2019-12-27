@@ -1,7 +1,7 @@
 #' Mixture diversity of 3 communities
 #' \code{miNEXT} computes the mixture diversity of 3 communities.
 #' @param data a matrix/data.frame.
-#' @param knots an integer specifying the number of points of m1. Default is 15.
+#' @param knots an integer specifying the number of points of m1. Default to be 15.
 #' @param m1 a vector specifying the values of m1 where the mixture diversity will be computed.
 #' @param nboot an integer specifying the number of bootstrap times to build confidence interval. 
 #' Use 0 to skip bootstrap.

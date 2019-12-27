@@ -2,7 +2,6 @@
 
 export(ggmiNEXT3)
 export(miNEXT3)
-export(miNEXT3_Abu)
 import(dplyr)
 importFrom(ggplot2,ggplot)
 importFrom(iNEXT,iNEXT)

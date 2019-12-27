@@ -10,7 +10,7 @@ miNEXT3(data, knots = 15, m1 = NULL, nboot = 0)
 \arguments{
 \item{data}{a matrix/data.frame.}
 
-\item{knots}{an integer specifying the number of points of m1. Default is 15.}
+\item{knots}{an integer specifying the number of points of m1. Default to be 15.}
 
 \item{m1}{a vector specifying the values of m1 where the mixture diversity will be computed.}
 
