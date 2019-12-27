@@ -8,7 +8,7 @@
 #' @return a list of 2 components: \code{$Each} a table of diversity of single community; \code{$Mixture} a 
 #' table of mixture diversity.
 #' @importFrom iNEXT iNEXT
-#' @import dplyr
+#' @import dplyr 
 #' @examples
 #' data(Abudata)
 #' data1 <- Abudata$data
@@ -56,8 +56,7 @@ miNEXT3 <- function(data, knots = 15, m1 = NULL,nboot = 0){
 #' \code{ggmiNEXT3} plot the output of miNEXT3 based on ggplot.
 #' @param x output of miNEXT3.
 #' @return a ggplot object
-#' @importFrom ggplot2 ggplot
-#' @import dplyr
+#' @import dplyr ggplot2
 #' @examples
 #' data(Abudata)
 #' data1 <- Abudata$data
@@ -104,6 +103,8 @@ ggmiNEXT3 <- function(x){
   return(pp)
 }
 
+#' @import dplyr
+#' @importFrom chaoUtility Boot_p
 mix3 <- function(data,ms){
   n <- colSums(data)
   if( sum( apply(ms, 1, function(m) sum(m<=n)) ==3) < nrow(ms)){
@@ -117,6 +118,7 @@ mix3 <- function(data,ms){
     mix3_each(data,m,n,datap)
   }) %>% t()
 }
+
 mix3_each <- function(data,m,n,datap=NULL){
   if(sum(m>n)==0){
     q0 <- D0_rare(data[,1], data[,2],data[,3], m[1], m[2],m[3])
@@ -141,6 +143,8 @@ mix3_each <- function(data,m,n,datap=NULL){
 }
 
 # q = 2, work for both interpolation and extrapolation
+#' @importFrom utils combn
+#' @import dplyr
 D2 <- function(data,mm){
   N <- ncol(data)
   n <- colSums(data)
@@ -160,6 +164,7 @@ D2 <- function(data,mm){
 
   # apply(mm, 1, subfun)
 }
+
 # q = 0, for two rarefaction and one extrapolation
 D_q0_ext1<-function(data,datap,m,n){
   q0_tmp1 <- D0_rare(data[,1],data[,2],data[,3], m[1], m[2], n[3])
@@ -193,6 +198,8 @@ D_q1_ext2<-function(data,datap,m,n){
 }
 
 # Functions for bootstrap
+#' @importFrom chaoUtility Boot_p
+#' @importFrom stats rmultinom
 Abun_CreatBootstrapSample <- function(data, nboots = 0){
   data <- data[rowSums(data)>0,]
   if(nboots>1){
@@ -244,6 +251,7 @@ Abun_CreatBootstrapSample <- function(data, nboots = 0){
   }
   return(data_boot)
 }
+
 Chat1_f0Fun <-function(f1, f2, n) {
   if (f2 > 0) {
     f0 <- (n - 1) / n * f1^2 / (2 * f2)
